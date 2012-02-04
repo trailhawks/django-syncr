@@ -21,7 +21,8 @@ class Photo(models.Model):
     owner = models.CharField(max_length=50)
     owner_nsid = models.CharField(max_length=50)
     title = models.CharField(max_length=200)
-    slug = models.SlugField(unique_for_date='taken_date',
+    slug = models.SlugField(max_length=100,
+                            unique_for_date='taken_date',
                             help_text='Automatically built from the title.')
     description = models.TextField(blank=True)
     taken_date = models.DateTimeField()
