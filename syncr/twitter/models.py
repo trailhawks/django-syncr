@@ -1,10 +1,9 @@
 from django.db import models
 from django.conf import settings
-from syncr.flickr.models import BigIntegerField
 
 class Tweet(models.Model):
     pub_time    = models.DateTimeField()
-    twitter_id  = BigIntegerField(unique=True)
+    twitter_id  = models.BigIntegerField(unique=True)
     text        = models.TextField()
     user        = models.ForeignKey('TwitterUser')
 
@@ -22,7 +21,7 @@ class Tweet(models.Model):
 	import pytz
 	zone = pytz.timezone(settings.TIME_ZONE)
 	return self.pub_time.replace(tzinfo=pytz.utc).astimezone(zone)
-    
+
 class TwitterUser(models.Model):
     screen_name = models.CharField(max_length=50)
     description = models.CharField(max_length=250, blank=True, null=True)
