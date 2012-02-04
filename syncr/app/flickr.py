@@ -222,7 +222,6 @@ class FlickrSyncr:
         except KeyError:
             original_secret = ''
 
-
         default_dict = {
             'flickr_id': photo_xml.photo[0]['id'],
             'owner': photo_xml.photo[0].owner[0]['username'],
@@ -244,6 +243,8 @@ class FlickrSyncr:
             'small_height': sizes['Small']['height'],
             'medium_width': sizes['Medium']['width'],
             'medium_height': sizes['Medium']['height'],
+            'medium_640_width': sizes['Medium 640']['width'],
+            'medium_640_height': sizes['Medium 640']['height'],
             'large_width': sizes['Large']['width'],
             'large_height': sizes['Large']['height'],
             'original_width': sizes['Original']['width'] or 0,

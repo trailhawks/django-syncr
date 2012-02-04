@@ -43,6 +43,8 @@ class Photo(models.Model):
     # medium_url = models.URLField() # Old
     medium_width = models.PositiveSmallIntegerField(null=True) # New
     medium_height = models.PositiveSmallIntegerField(null=True) # New
+    medium_640_width = models.PositiveSmallIntegerField(null=True) # New
+    medium_640__height = models.PositiveSmallIntegerField(null=True) # New
     large_width = models.PositiveSmallIntegerField(null=True) # New
     large_height = models.PositiveSmallIntegerField(null=True) # New
     original_width = models.PositiveSmallIntegerField() # New
