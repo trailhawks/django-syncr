@@ -57,7 +57,8 @@ class FlickrSyncr:
         result = self.flickr.photos_getSizes(photo_id=photo_id)
         sizes = dict()
         # Set defaults to None
-        for label in ('Square','Thumbnail','Small','Medium','Large','Original'):
+        for label in ('Square', 'Thumbnail', 'Small', 'Medium', 'Medium 640', 'Large', 'Original'):
+
             sizes[label] = {'width': None, 'height': None}
         # Set values given by flickr
         for el in result.sizes[0].size:
@@ -334,7 +335,7 @@ class FlickrSyncr:
         if count >= 500:
             per_page = 500
         pages = count // per_page
-        
+
         for page in range(0, pages):
             result = self.flickr.people_getPublicPhotos(
 		user_id=nsid, per_page=per_page, page=page)
@@ -418,7 +419,7 @@ class FlickrSyncr:
 	    d_photoset.save()
 
 	page_count = int(result.photoset[0]['pages'])
-	
+
         for page in range(1, page_count+1):
             if page > 1:
                 result = self.flickr.photosets_getPhotos(
