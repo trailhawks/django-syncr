@@ -57,7 +57,7 @@ class FlickrSyncr:
         result = self.flickr.photos_getSizes(photo_id=photo_id)
         sizes = dict()
         # Set defaults to None
-        for label in ('Square', 'Thumbnail', 'Small', 'Medium', 'Medium 640', 'Large', 'Original'):
+        for label in ('Square', 'Thumbnail', 'Small', 'Small 320', 'Medium', 'Medium 640', 'Medium 800', 'Large', 'Large 1600', 'Large 2048', 'Large Square', 'Original'):
 
             sizes[label] = {'width': None, 'height': None}
         # Set values given by flickr
