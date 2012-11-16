@@ -1,17 +1,17 @@
 import calendar
-from datetime import datetime, timedelta
 import flickrapi
-import math
-from time import strptime
 
+from datetime import datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.template import defaultfilters
 from django.utils.encoding import smart_str
+from time import strptime
 
 from syncr.flickr.models import *
 from syncr.flickr.slug import get_unique_slug_for_photo
 
-class FlickrSyncr:
+
+class FlickrSyncr(object):
     """
     FlickrSyncr objects sync flickr photos, photo sets, and favorites
     lists with the Django backend.
@@ -41,7 +41,7 @@ class FlickrSyncr:
 
     def _getXMLNodeTag(self, node):
         try:
-            return " ".join([x.text for x in node.photo[0].tags[0].tag])
+            return ",".join([x.text for x in node.photo[0].tags[0].tag])
         except AttributeError:
             return " "
 
@@ -58,7 +58,6 @@ class FlickrSyncr:
         sizes = dict()
         # Set defaults to None
         for label in ('Square', 'Thumbnail', 'Small', 'Small 320', 'Medium', 'Medium 640', 'Medium 800', 'Large', 'Large 1600', 'Large 2048', 'Large Square', 'Original'):
-
             sizes[label] = {'width': None, 'height': None}
         # Set values given by flickr
         for el in result.sizes[0].size:
@@ -183,14 +182,14 @@ class FlickrSyncr:
         Required Arguments
           photo_xml: A flickr photos in Flickrapi's REST XMLNode format
         """
-        if photo_xml.photo[0]['media'] != 'photo': # Ignore media like videos
+        if photo_xml.photo[0]['media'] != 'photo':  # Ignore media like videos
             return None
         photo_id = photo_xml.photo[0]['id']
 
         # if we're refreshing this data, then delete the Photo first...
         if refresh:
             try:
-                p = Photo.objects.get(flickr_id = photo_id)
+                p = Photo.objects.get(flickr_id=photo_id)
                 p.delete()
             except ObjectDoesNotExist:
                 pass
@@ -213,8 +212,8 @@ class FlickrSyncr:
             if 255 <= (count + tag[1] - 1):
                 tags = tags[:-1]
                 break
-            if not tag[0].startswith('geo:'): # Exclude ugly geo-tags
-                tags += u'%s ' % tag[0]
+            if not tag[0].startswith('geo:'):  # Exclude ugly geo-tags
+                tags += u'%s,' % tag[0]
                 count += tag[1]
 
         try:
@@ -226,7 +225,7 @@ class FlickrSyncr:
             'flickr_id': photo_xml.photo[0]['id'],
             'owner': photo_xml.photo[0].owner[0]['username'],
             'owner_nsid': photo_xml.photo[0].owner[0]['nsid'],
-            'title': photo_xml.photo[0].title[0].text, # TODO: Typography
+            'title': photo_xml.photo[0].title[0].text,  # TODO: Typography
             'slug': slug,
             'description': photo_xml.photo[0].description[0].text,
             'taken_date': taken_date,
@@ -245,6 +244,8 @@ class FlickrSyncr:
             'medium_height': sizes['Medium']['height'],
             'medium_640_width': sizes['Medium 640']['width'],
             'medium_640_height': sizes['Medium 640']['height'],
+            'large_square_width': sizes['Large Square']['width'],
+            'large_square_height': sizes['Large Square']['height'],
             'large_width': sizes['Large']['width'],
             'large_height': sizes['Large']['height'],
             'original_width': sizes['Original']['width'] or 0,
@@ -253,7 +254,6 @@ class FlickrSyncr:
             # Removed 'small_url': urls['Small'],
             # Removed 'medium_url': urls['Medium'],
             # Removed 'thumbnail_url': urls['Thumbnail'],
-            'tags': tags,
             'license': photo_xml.photo[0]['license'],
             'geo_latitude': geo_data['latitude'],
             'geo_longitude': geo_data['longitude'],
@@ -276,7 +276,9 @@ class FlickrSyncr:
         }
 
         obj, created = Photo.objects.get_or_create(
-            flickr_id = photo_xml.photo[0]['id'], defaults=default_dict)
+            flickr_id=photo_xml.photo[0]['id'], defaults=default_dict)
+
+        obj.tags.add(tags.strip(','))
 
         # update if something changed
         if obj.update_date < update_date:
@@ -399,7 +401,7 @@ class FlickrSyncr:
         username = self.flickr.people_getInfo(user_id = nsid).person[0].username[0].text
         result = self.flickr.photosets_getPhotos(photoset_id = photoset_id)
         page_count = int(result.photoset[0]['pages'])
-	primary = self.syncPhoto(photoset_xml.photoset[0]['primary'])
+        primary = self.syncPhoto(photoset_xml.photoset[0]['primary'])
 
         d_photoset, created = PhotoSet.objects.get_or_create(
                 flickr_id = photoset_id,
@@ -412,14 +414,14 @@ class FlickrSyncr:
 			'order': order
 			}
 		)
-	if not created: # update it
-	    d_photoset.owner  = username
-	    d_photoset.title  = photoset_xml.photoset[0].title[0].text
-	    d_photoset.description=photoset_xml.photoset[0].description[0].text
-	    d_photoset.primary = primary
-	    d_photoset.save()
+    	if not created: # update it
+    	    d_photoset.owner  = username
+    	    d_photoset.title  = photoset_xml.photoset[0].title[0].text
+    	    d_photoset.description=photoset_xml.photoset[0].description[0].text
+    	    d_photoset.primary = primary
+    	    d_photoset.save()
 
-	page_count = int(result.photoset[0]['pages'])
+    	page_count = int(result.photoset[0]['pages'])
 
         for page in range(1, page_count+1):
             if page > 1:

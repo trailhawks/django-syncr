@@ -2,9 +2,8 @@ from django.db import models
 from django.utils.html import strip_tags
 from django.utils.text import truncate_words
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
+from taggit.managers import TaggableManager
 
-from tagging.fields import TagField
 
 FLICKR_LICENSES = (
     ('0', 'All Rights Reserved'),
@@ -15,6 +14,7 @@ FLICKR_LICENSES = (
     ('5', 'Attribution-ShareAlike License'),
     ('6', 'Attribution-NoDerivs License'),
 )
+
 
 class Photo(models.Model):
     flickr_id = models.BigIntegerField(unique=True)
@@ -35,6 +35,8 @@ class Photo(models.Model):
     original_secret = models.CharField(max_length=10, blank=True)
     # square_url = models.URLField() # Old
     # thumbnail_url = models.URLField() # Old
+    large_square_width = models.PositiveSmallIntegerField(null=True) # New
+    large_square_height = models.PositiveSmallIntegerField(null=True) # New
     thumbnail_width = models.PositiveSmallIntegerField() # New
     thumbnail_height = models.PositiveSmallIntegerField() # New
     # small_url = models.URLField() # Old
@@ -49,16 +51,15 @@ class Photo(models.Model):
     large_height = models.PositiveSmallIntegerField(null=True) # New
     original_width = models.PositiveSmallIntegerField() # New
     original_height = models.PositiveSmallIntegerField() # New
-    tags = TagField(blank=True)
     enable_comments = models.BooleanField(default=True)
     license = models.CharField(max_length=50, choices=FLICKR_LICENSES)
-    geo_latitude = models.FloatField(null=True)
-    geo_longitude = models.FloatField(null=True)
-    geo_accuracy = models.PositiveSmallIntegerField(null=True)
-    geo_locality = models.CharField(max_length=200, blank=True) # New
-    geo_county = models.CharField(max_length=200, blank=True) # New
-    geo_region = models.CharField(max_length=200, blank=True) # New
-    geo_country = models.CharField(max_length=200, blank=True) # New
+    geo_latitude = models.FloatField(blank=True, null=True)
+    geo_longitude = models.FloatField(blank=True, null=True)
+    geo_accuracy = models.PositiveSmallIntegerField(blank=True, null=True)
+    geo_locality = models.CharField(max_length=200, blank=True, null=True) # New
+    geo_county = models.CharField(max_length=200, blank=True, null=True) # New
+    geo_region = models.CharField(max_length=200, blank=True, null=True) # New
+    geo_country = models.CharField(max_length=200, blank=True, null=True) # New
     exif_make  = models.CharField(max_length=50, blank=True)
     exif_model = models.CharField(max_length=50, blank=True)
     exif_orientation = models.CharField(max_length=50, blank=True)
@@ -70,6 +71,8 @@ class Photo(models.Model):
     exif_flash = models.CharField(max_length=50, blank=True)
     exif_focal_length = models.CharField(max_length=50, blank=True)
     exif_color_space = models.CharField(max_length=50, blank=True)
+
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('-taken_date',)
@@ -83,7 +86,7 @@ class Photo(models.Model):
         return ('photo_detail', (), { 'year': self.taken_date.strftime('%Y'),
                                       'month': self.taken_date.strftime('%m'),
                                       'day': self.taken_date.strftime('%d'),
-                                      'slug': self.slug })
+                                      'slug': self.slug})
 
     def _get_photo_url_helper(self, size, secret=None):
         size = size and '_%s' % size or ''
@@ -106,8 +109,13 @@ class Photo(models.Model):
             return self._get_photo_url_helper('')
         return self.get_original_url()
 
-    def get_large_url(self):
+    def get_large_square_url(self):
         if self.has_large_photo:
+            return self._get_photo_url_helper('q_d')
+        return self.get_original_url()
+
+    def get_large_url(self):
+        if self.has_large_square_photo:
             return self._get_photo_url_helper('b')
         return self.get_original_url()
 
@@ -129,11 +137,14 @@ class Photo(models.Model):
         return False
 
     @property
+    def has_large_square_photo(self):
+        return True if self.large_square_width else False
+
+    @property
     def has_original_photo(self):
         if self.original_width is not None:
             return True
         return False
-
 
     def _next_previous_helper(self, direction, photoset):
         order = direction == 'next' and 'taken_date' or '-taken_date'
@@ -170,18 +181,19 @@ class Photo(models.Model):
         """
         return self._next_previous_helper('previous', *args, **kwargs)
 
+
 class FavoriteList(models.Model):
     owner = models.CharField(max_length=50)
     sync_date = models.DateTimeField()
     photos = models.ManyToManyField('Photo')
-    primary = models.ForeignKey( \
-	'Photo', related_name='primary_in', null=True)
+    primary = models.ForeignKey('Photo', related_name='primary_in', null=True)
 
     def numPhotos(self):
         return len(self.photo_list.objects.all())
 
     def __unicode__(self):
         return u"%s's favorite photos" % self.owner
+
 
 class PhotoSet(models.Model):
     flickr_id = models.CharField(primary_key=True, max_length=50)
@@ -201,7 +213,7 @@ class PhotoSet(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('photoset_detail', (), { 'object_id': self.pk })
+        return ('photoset_detail', (), {'object_id': self.pk})
 
     def get_photos_ordered_by_taken_date(self):
         """
@@ -249,6 +261,7 @@ class PhotoSet(models.Model):
         return None
     get_primary_photo.allow_tags = True
     get_primary_photo.short_description = _(u'Highlight')
+
 
 class PhotoComment(models.Model):
     flickr_id = models.CharField(primary_key=True, max_length=128)
