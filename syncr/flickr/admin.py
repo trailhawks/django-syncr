@@ -5,7 +5,7 @@ from syncr.flickr.models import Photo, FavoriteList, PhotoSet, PhotoComment
 
 class PhotoAdmin(admin.ModelAdmin):
     date_hierarchy = 'taken_date'
-    list_display = ('taken_date', 'title', 'upload_date', 'flickr_id', 'owner')
+    list_display = ('title',  'flickr_id', 'owner', 'taken_date')
     list_display_links = ('title', 'flickr_id')
     list_filter = ('upload_date', 'taken_date')
     prepopulated_fields = {'slug': ('title',)}
@@ -19,7 +19,7 @@ class FavoriteListAdmin(admin.ModelAdmin):
 class PhotoSetAdmin(admin.ModelAdmin):
     list_display = ('get_primary_photo', 'title', 'flickr_id', 'owner')
     list_display_links = ('title',)
-    list_select_related = True # ``get_primary_photo`` uses a ForeignKey
+    list_select_related = True  # ``get_primary_photo`` uses a ForeignKey
 
 
 class PhotoCommentAdmin(admin.ModelAdmin):
