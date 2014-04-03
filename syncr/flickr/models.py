@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils.html import strip_tags
-from django.utils.text import truncate_words
+try:
+    from django.utils.text import truncate_words
+except ImportError:
+    from django.template.defaultfilters import truncatewords as truncate_words
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager
 
@@ -81,12 +84,14 @@ class Photo(models.Model):
     def __unicode__(self):
         return u'%s' % self.title
 
+    '''
     @models.permalink
     def get_absolute_url(self):
         return ('photo_detail', (), { 'year': self.taken_date.strftime('%Y'),
                                       'month': self.taken_date.strftime('%m'),
                                       'day': self.taken_date.strftime('%d'),
                                       'slug': self.slug})
+    '''
 
     def _get_photo_url_helper(self, size, secret=None):
         size = size and '_%s' % size or ''
