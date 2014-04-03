@@ -17,7 +17,7 @@ class FavoriteListAdmin(admin.ModelAdmin):
 
 
 class PhotoSetAdmin(admin.ModelAdmin):
-    list_display = ('get_primary_photo', 'title', 'flickr_id', 'owner')
+    list_display = ('title', 'flickr_id', 'owner')
     list_display_links = ('title',)
     list_select_related = True  # ``get_primary_photo`` uses a ForeignKey
 
