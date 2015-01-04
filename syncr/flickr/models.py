@@ -19,6 +19,12 @@ FLICKR_LICENSES = (
 )
 
 
+class PhotoQuerySet(models.QuerySet):
+
+    def active(self):
+        return self.filter(active=True)
+
+
 class Photo(models.Model):
     flickr_id = models.BigIntegerField(unique=True)
     owner = models.CharField(max_length=50)
@@ -74,8 +80,10 @@ class Photo(models.Model):
     exif_flash = models.CharField(max_length=50, blank=True)
     exif_focal_length = models.CharField(max_length=50, blank=True)
     exif_color_space = models.CharField(max_length=50, blank=True)
+    active = models.BooleanField(default=True)
 
     tags = TaggableManager(blank=True)
+    objects = PhotoQuerySet.as_manager()
 
     class Meta:
         ordering = ('-taken_date',)
