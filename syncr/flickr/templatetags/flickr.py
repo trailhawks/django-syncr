@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-import datetime
-
 from django import template
 from django.conf import settings
 from django.db import connection
-from django.db.models import Q
-from django.template.defaultfilters import stringfilter
-from django.utils.safestring import mark_safe
 
 from syncr.flickr.models import Photo
 
@@ -20,6 +15,7 @@ register = template.Library()
 # CONTENT UTILS   #
 ###################
 
+
 class RandomPhotoNode(template.Node):
     def __init__(self, num, varname):
         self.num, self.varname = int(num), varname
@@ -27,16 +23,22 @@ class RandomPhotoNode(template.Node):
     def render(self, context):
         custom_filter = getattr(settings, 'FLICKR_RANDOM_PHOTO_FILTER', {})
         qn = connection.ops.quote_name
-        qs = Photo.objects.filter(**custom_filter).extra(
-            where=['%(width)s > %(height)s' % {
-                    'width': qn('thumbnail_width'),
-                    'height': qn('thumbnail_height')
-                    }]
-            ).order_by('?')
+        qs = (
+            Photo.objects.active()
+            .filter(**custom_filter)
+            .extra(
+                where=[
+                    '%(width)s > %(height)s'
+                    % {'width': qn('thumbnail_width'), 'height': qn('thumbnail_height')}
+                ]
+            )
+            .order_by('?')
+        )
         if self.num is 0:
             self.num = len(qs)
-        context[self.varname] = qs[:self.num]
+        context[self.varname] = qs[: self.num]
         return ''
+
 
 @register.tag(name="get_random_photos")
 def get_random_photos(parser, token):
@@ -67,7 +69,11 @@ def get_random_photos(parser, token):
     """
     bits = token.contents.split()
     if len(bits) != 4:
-        raise template.TemplateSyntaxError('get_random_photos tag takes exactly three arguments')
+        raise template.TemplateSyntaxError(
+            'get_random_photos tag takes exactly three arguments'
+        )
     if bits[2] != 'as':
-        raise template.TemplateSyntaxError('third argument to get_random_photos tag must be "as"')
+        raise template.TemplateSyntaxError(
+            'third argument to get_random_photos tag must be "as"'
+        )
     return RandomPhotoNode(bits[1], bits[3])

@@ -24,6 +24,9 @@ class PhotoQuerySet(models.QuerySet):
     def active(self):
         return self.filter(active=True)
 
+    def needs_reviewed(self):
+        return self.filter(active=None)
+
 
 class Photo(models.Model):
     flickr_id = models.BigIntegerField(unique=True)
@@ -82,7 +85,7 @@ class Photo(models.Model):
     exif_flash = models.CharField(max_length=50, blank=True)
     exif_focal_length = models.CharField(max_length=50, blank=True)
     exif_color_space = models.CharField(max_length=50, blank=True)
-    active = models.BooleanField(default=True)
+    active = models.NullBooleanField()
 
     tags = TaggableManager(blank=True)
     objects = PhotoQuerySet.as_manager()
@@ -91,8 +94,8 @@ class Photo(models.Model):
         ordering = ('-taken_date',)
         get_latest_by = 'upload_date'
 
-    def __unicode__(self):
-        return u'%s' % self.title
+    def __str__(self):
+        return self.title
 
     '''
     @models.permalink
@@ -213,7 +216,7 @@ class FavoriteList(models.Model):
     def numPhotos(self):
         return len(self.photo_list.objects.all())
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%s's favorite photos" % self.owner
 
 
@@ -231,7 +234,7 @@ class PhotoSet(models.Model):
     class Meta:
         ordering = ('order',)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%s photo set by %s" % (self.title, self.owner)
 
     @models.permalink
@@ -306,7 +309,7 @@ class PhotoComment(models.Model):
     class Meta:
         ordering = ('pub_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         return _(u"%(author)s said: %(comment)s") % {
             'author': self.author,
             'comment': self.get_short_comment(4),
