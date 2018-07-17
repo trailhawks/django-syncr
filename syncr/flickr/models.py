@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.html import strip_tags
+
 try:
     from django.utils.text import truncate_words
 except ImportError:
@@ -20,7 +21,6 @@ FLICKR_LICENSES = (
 
 
 class PhotoQuerySet(models.QuerySet):
-
     def active(self):
         return self.filter(active=True)
 
@@ -30,46 +30,48 @@ class Photo(models.Model):
     owner = models.CharField(max_length=50)
     owner_nsid = models.CharField(max_length=50)
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100,
-                            unique_for_date='taken_date',
-                            help_text='Automatically built from the title.')
+    slug = models.SlugField(
+        max_length=100,
+        unique_for_date='taken_date',
+        help_text='Automatically built from the title.',
+    )
     description = models.TextField(blank=True)
     taken_date = models.DateTimeField()
-    upload_date = models.DateTimeField() # New
-    update_date = models.DateTimeField() # New (very)
+    upload_date = models.DateTimeField()  # New
+    update_date = models.DateTimeField()  # New (very)
     photopage_url = models.URLField()
-    farm = models.PositiveSmallIntegerField() # New
-    server = models.PositiveSmallIntegerField() # New
-    secret = models.CharField(max_length=10) # New
+    farm = models.PositiveSmallIntegerField()  # New
+    server = models.PositiveSmallIntegerField()  # New
+    secret = models.CharField(max_length=10)  # New
     original_secret = models.CharField(max_length=10, blank=True)
     # square_url = models.URLField() # Old
     # thumbnail_url = models.URLField() # Old
-    large_square_width = models.PositiveSmallIntegerField(null=True) # New
-    large_square_height = models.PositiveSmallIntegerField(null=True) # New
-    thumbnail_width = models.PositiveSmallIntegerField() # New
-    thumbnail_height = models.PositiveSmallIntegerField() # New
+    large_square_width = models.PositiveSmallIntegerField(null=True)  # New
+    large_square_height = models.PositiveSmallIntegerField(null=True)  # New
+    thumbnail_width = models.PositiveSmallIntegerField()  # New
+    thumbnail_height = models.PositiveSmallIntegerField()  # New
     # small_url = models.URLField() # Old
-    small_width = models.PositiveSmallIntegerField() # New
-    small_height = models.PositiveSmallIntegerField() # New
+    small_width = models.PositiveSmallIntegerField()  # New
+    small_height = models.PositiveSmallIntegerField()  # New
     # medium_url = models.URLField() # Old
-    medium_width = models.PositiveSmallIntegerField(null=True) # New
-    medium_height = models.PositiveSmallIntegerField(null=True) # New
-    medium_640_width = models.PositiveSmallIntegerField(null=True) # New
-    medium_640_height = models.PositiveSmallIntegerField(null=True) # New
-    large_width = models.PositiveSmallIntegerField(null=True) # New
-    large_height = models.PositiveSmallIntegerField(null=True) # New
-    original_width = models.PositiveSmallIntegerField() # New
-    original_height = models.PositiveSmallIntegerField() # New
+    medium_width = models.PositiveSmallIntegerField(null=True)  # New
+    medium_height = models.PositiveSmallIntegerField(null=True)  # New
+    medium_640_width = models.PositiveSmallIntegerField(null=True)  # New
+    medium_640_height = models.PositiveSmallIntegerField(null=True)  # New
+    large_width = models.PositiveSmallIntegerField(null=True)  # New
+    large_height = models.PositiveSmallIntegerField(null=True)  # New
+    original_width = models.PositiveSmallIntegerField()  # New
+    original_height = models.PositiveSmallIntegerField()  # New
     enable_comments = models.BooleanField(default=True)
     license = models.CharField(max_length=50, choices=FLICKR_LICENSES)
     geo_latitude = models.FloatField(blank=True, null=True)
     geo_longitude = models.FloatField(blank=True, null=True)
     geo_accuracy = models.PositiveSmallIntegerField(blank=True, null=True)
-    geo_locality = models.CharField(max_length=200, blank=True, null=True) # New
-    geo_county = models.CharField(max_length=200, blank=True, null=True) # New
-    geo_region = models.CharField(max_length=200, blank=True, null=True) # New
-    geo_country = models.CharField(max_length=200, blank=True, null=True) # New
-    exif_make  = models.CharField(max_length=50, blank=True)
+    geo_locality = models.CharField(max_length=200, blank=True, null=True)  # New
+    geo_county = models.CharField(max_length=200, blank=True, null=True)  # New
+    geo_region = models.CharField(max_length=200, blank=True, null=True)  # New
+    geo_country = models.CharField(max_length=200, blank=True, null=True)  # New
+    exif_make = models.CharField(max_length=50, blank=True)
     exif_model = models.CharField(max_length=50, blank=True)
     exif_orientation = models.CharField(max_length=50, blank=True)
     exif_exposure = models.CharField(max_length=50, blank=True)
@@ -106,7 +108,12 @@ class Photo(models.Model):
         if secret is None:
             secret = self.secret
         return u'http://farm%s.static.flickr.com/%s/%s_%s%s.jpg' % (
-            self.farm, self.server, self.flickr_id, secret, size)
+            self.farm,
+            self.server,
+            self.flickr_id,
+            secret,
+            size,
+        )
 
     def get_square_url(self):
         return self._get_photo_url_helper('s')
@@ -163,9 +170,11 @@ class Photo(models.Model):
         order = direction == 'next' and 'taken_date' or '-taken_date'
         filter = direction == 'next' and 'gt' or 'lt'
         try:
-            return self.photoset_set.get(pk=photoset.pk).photos.filter(
-                **{'taken_date__%s' % filter: self.taken_date}
-                ).order_by(order)[0]
+            return (
+                self.photoset_set.get(pk=photoset.pk)
+                .photos.filter(**{'taken_date__%s' % filter: self.taken_date})
+                .order_by(order)[0]
+            )
         except IndexError:
             return None
 
@@ -210,8 +219,9 @@ class FavoriteList(models.Model):
 
 class PhotoSet(models.Model):
     flickr_id = models.CharField(primary_key=True, max_length=50)
-    primary = models.ForeignKey('Photo', null=True, default=None,
-                                related_name='primary_photo_set')
+    primary = models.ForeignKey(
+        'Photo', null=True, default=None, related_name='primary_photo_set'
+    )
     owner = models.CharField(max_length=50)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -269,9 +279,17 @@ class PhotoSet(models.Model):
 
     def get_primary_photo(self):
         if self.primary is not None:
-            bits = (self.primary.get_absolute_url(), self.primary.get_square_url(), self.primary)
-            return '<a href="%s"><img src="%s" width="75" height="75" alt="%s" /></a>' % bits
+            bits = (
+                self.primary.get_absolute_url(),
+                self.primary.get_square_url(),
+                self.primary,
+            )
+            return (
+                '<a href="%s"><img src="%s" width="75" height="75" alt="%s" /></a>'
+                % bits
+            )
         return None
+
     get_primary_photo.allow_tags = True
     get_primary_photo.short_description = _(u'Highlight')
 
@@ -290,11 +308,14 @@ class PhotoComment(models.Model):
 
     def __unicode__(self):
         return _(u"%(author)s said: %(comment)s") % {
-            'author': self.author, 'comment': self.get_short_comment(4)}
+            'author': self.author,
+            'comment': self.get_short_comment(4),
+        }
 
     def get_absolute_url(self):
         return self.permanent_url
 
     def get_short_comment(self, num=6):
         return truncate_words(strip_tags(self.comment), num)
+
     get_short_comment.short_description = _(u'comment')
