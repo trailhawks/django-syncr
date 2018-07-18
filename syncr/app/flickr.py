@@ -283,13 +283,11 @@ class FlickrSyncr(object):
             'exif_color_space': self.getExifKey(exif_data, 'Color Space'),
         }
 
+        if len(tags):
+            default_dict['tags'] = [tag for tag in tags.split(',') if len(tag)]
+
         obj, created = Photo.objects.get_or_create(
             flickr_id=photo_xml.photo[0]['id'], defaults=default_dict)
-
-        if len(tags) > 100:
-            tags = tags[0:100]
-
-        obj.tags.add(tags.strip(','))
 
         # update if something changed
         if obj.update_date < update_date:

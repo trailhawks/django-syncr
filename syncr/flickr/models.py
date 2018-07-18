@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.html import strip_tags
 
@@ -6,7 +7,6 @@ try:
 except ImportError:
     from django.template.defaultfilters import truncatewords as truncate_words
 from django.utils.translation import ugettext_lazy as _
-from taggit.managers import TaggableManager
 
 
 FLICKR_LICENSES = (
@@ -86,8 +86,12 @@ class Photo(models.Model):
     exif_focal_length = models.CharField(max_length=50, blank=True)
     exif_color_space = models.CharField(max_length=50, blank=True)
     active = models.NullBooleanField()
+    tags = ArrayField(
+        models.CharField(max_length=200),
+        blank=True,
+        null=True,
+    )
 
-    tags = TaggableManager(blank=True)
     objects = PhotoQuerySet.as_manager()
 
     class Meta:
