@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tweet',
             name='user',
-            field=models.ForeignKey(to='twitter.TwitterUser'),
+            field=models.ForeignKey(to='twitter.TwitterUser', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

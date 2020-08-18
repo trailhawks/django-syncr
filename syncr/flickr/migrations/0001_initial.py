@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
                 ('pub_date', models.DateTimeField()),
                 ('permanent_url', models.URLField()),
                 ('comment', models.TextField()),
-                ('photo', models.ForeignKey(to='flickr.Photo')),
+                ('photo', models.ForeignKey(to='flickr.Photo', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('pub_date',),
@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True)),
                 ('order', models.PositiveSmallIntegerField(default=0)),
                 ('photos', models.ManyToManyField(to='flickr.Photo')),
-                ('primary', models.ForeignKey(related_name='primary_photo_set', default=None, to='flickr.Photo', null=True)),
+                ('primary', models.ForeignKey(related_name='primary_photo_set', default=None, on_delete=models.CASCADE, to='flickr.Photo', null=True)),
             ],
             options={
                 'ordering': ('order',),
@@ -124,7 +124,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='favoritelist',
             name='primary',
-            field=models.ForeignKey(related_name='primary_in', to='flickr.Photo', null=True),
+            field=models.ForeignKey(related_name='primary_in', to='flickr.Photo', on_delete=models.CASCADE, null=True),
             preserve_default=True,
         ),
     ]
