@@ -215,7 +215,7 @@ class FavoriteList(models.Model):
     owner = models.CharField(max_length=50)
     sync_date = models.DateTimeField()
     photos = models.ManyToManyField('Photo')
-    primary = models.ForeignKey('Photo', related_name='primary_in', null=True)
+    primary = models.ForeignKey('Photo', on_delete=models.CASCADE, related_name='primary_in', null=True)
 
     def numPhotos(self):
         return len(self.photo_list.objects.all())
@@ -227,7 +227,7 @@ class FavoriteList(models.Model):
 class PhotoSet(models.Model):
     flickr_id = models.CharField(primary_key=True, max_length=50)
     primary = models.ForeignKey(
-        'Photo', null=True, default=None, related_name='primary_photo_set'
+        'Photo', on_delete=models.CASCADE, null=True, default=None, related_name='primary_photo_set'
     )
     owner = models.CharField(max_length=50)
     title = models.CharField(max_length=200)
@@ -303,7 +303,7 @@ class PhotoSet(models.Model):
 
 class PhotoComment(models.Model):
     flickr_id = models.CharField(primary_key=True, max_length=128)
-    photo = models.ForeignKey('Photo')
+    photo = models.ForeignKey('Photo', on_delete=models.CASCADE)
     author_nsid = models.CharField(max_length=50)
     author = models.CharField(max_length=50)
     pub_date = models.DateTimeField()

@@ -6,7 +6,7 @@ class Tweet(models.Model):
     pub_time = models.DateTimeField()
     twitter_id = models.BigIntegerField(unique=True)
     text = models.TextField()
-    user = models.ForeignKey('TwitterUser')
+    user = models.ForeignKey('TwitterUser', on_delete=models.CASCADE)
 
     def __unicode__(self):
         return u'%s %s' % (self.user.screen_name, self.pub_time)
