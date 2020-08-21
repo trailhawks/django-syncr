@@ -8,7 +8,7 @@ class Tweet(models.Model):
     text = models.TextField()
     user = models.ForeignKey('TwitterUser', on_delete=models.CASCADE)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s %s' % (self.user.screen_name, self.pub_time)
 
     def url(self):
@@ -48,5 +48,5 @@ class TwitterUser(models.Model):
     def numFollowers(self):
         return self.followers.count()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.screen_name

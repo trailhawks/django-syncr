@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.urls import reverse
 from django.utils.html import strip_tags
 
 try:
@@ -241,9 +242,8 @@ class PhotoSet(models.Model):
     def __str__(self):
         return u"%s photo set by %s" % (self.title, self.owner)
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('photoset_detail', (), {'object_id': self.pk})
+        return reverse('photoset_detail', kwargs={'object_id': self.pk})
 
     def get_photos_ordered_by_taken_date(self):
         """
